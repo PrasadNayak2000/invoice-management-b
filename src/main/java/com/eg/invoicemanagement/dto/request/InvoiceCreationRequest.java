@@ -3,7 +3,7 @@ package com.eg.invoicemanagement.dto.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.sql.Date;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,5 +19,5 @@ public class InvoiceCreationRequest {
 
     @NotNull(message = "The invoice due date cannot be null") //Verifying due date is not null
     @JsonProperty("due_date") //Getting value as due_date from request and mapping to dueDate property
-    private Date dueDate;
+    private LocalDate dueDate;
 }

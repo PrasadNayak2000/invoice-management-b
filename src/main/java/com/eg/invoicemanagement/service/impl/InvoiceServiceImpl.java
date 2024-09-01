@@ -8,7 +8,7 @@ import com.eg.invoicemanagement.model.Invoice;
 import com.eg.invoicemanagement.model.enums.Status;
 import com.eg.invoicemanagement.repository.InvoiceRepository;
 import com.eg.invoicemanagement.service.InvoiceService;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +59,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         //Checking whether invoice exists with given invoiceId
         if (invoiceOpt.isEmpty())
             return new ResponseEntity<>("No invoice found with id " + invoiceId, HttpStatus.BAD_REQUEST);
+
         Invoice invoice = invoiceOpt.get();
+
+        //Restricting payment if due date is already passed
+        if (invoice.getDueDate().isBefore(LocalDate.now()))
+            return new ResponseEntity<>("Invoice due date is already over", HttpStatus.BAD_REQUEST);
 
         double invoiceAmount = invoice.getAmount();
         double paidAmount = invoice.getPaidAmount();
@@ -88,7 +93,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         double lateFee = request.getLateFee();
         int overdueDays = request.getOverdueDays();
-        long overdueInMilliSeconds = overdueDays * (1000L * 60 * 60 * 24); //Total milliseconds of a day 1000 * 60 * 60 *24
 
         //For storing newly created invoices
         List<Invoice> newInvoices = new ArrayList<>();
@@ -108,7 +112,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             Invoice newInvoice = new Invoice();
             newInvoice.setAmount((amount - paidAmount) + lateFee);
-            newInvoice.setDueDate(new Date(invoice.getDueDate().getTime() + overdueInMilliSeconds));
+            newInvoice.setDueDate(invoice.getDueDate().plusDays(overdueDays));
             newInvoice.setStatus(Status.PENDING);
             newInvoices.add(newInvoice);
         }
